@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DASS-21 — Sprawdź swój stan psychiczny</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:           #12153D;
+      --primary:       #2D3191;
+      --primary-dark:  #1E2070;
+      --primary-light: #4A4EB5;
+      --primary-mist:  #E8F8F9;
+      --accent:        #2BC5C5;
+      --accent-warm:   #5DD4D4;
+      --cream:         #F8F5EF;
+      --cream-2:       #EFE9DF;
+      --white:         #FFFFFF;
+      --muted:         #6B6490;
+      --border:        #E4DDD0;
+      --font-d:        'Playfair Display', Georgia, serif;
+      --font-b:        'Nunito', system-ui, sans-serif;
+      --ease:          cubic-bezier(.4,0,.2,1);
+      --t:             .32s var(--ease);
+      --sh-sm:         0 2px 12px rgba(18,21,61,.08);
+      --sh-md:         0 8px 36px rgba(18,21,61,.13);
+      --r-sm:          12px;
+      --r-md:          20px;
+      --r-lg:          32px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font-b); background: var(--cream); color: var(--ink); line-height: 1.6; overflow-x: hidden; }
+
+    /* ── UTILITY ── */
+    .hidden { display: none !important; }
+
+    /* ── NAV ── */
+    #nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      padding: 1.25rem 2.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: background var(--t), box-shadow var(--t);
+    }
+    #nav.scrolled { background: rgba(248,245,239,.94); backdrop-filter: blur(14px); box-shadow: var(--sh-sm); }
+    .nav-logo { font-family: var(--font-d); font-size: 1.3rem; letter-spacing: -.02em; color: var(--primary-dark); text-decoration: none; }
+    .nav-logo em { font-style: normal; color: var(--accent); }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      font-family: var(--font-b); font-weight: 700; border: none; cursor: pointer;
+      text-decoration: none; border-radius: 100px; transition: all var(--t);
+    }
+    .btn-sm  { padding: .6rem 1.5rem; font-size: .875rem; }
+    .btn-lg  { padding: 1rem 2.25rem; font-size: 1rem; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(45,49,145,.35); }
+    .btn-primary:hover .arrow { transform: translateX(4px); }
+    .arrow { transition: transform var(--t); }
+
+    /* ── HERO BG ── */
+    .hero-bg {
+      position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background:
+        radial-gradient(ellipse 70% 90% at 75% 45%, rgba(43,197,197,.08) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 70% at 15% 25%, rgba(45,49,145,.05) 0%, transparent 60%),
+        var(--cream);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: grid; grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 9rem 4rem 5rem;
+      max-width: 1340px; margin: 0 auto; gap: 3rem;
+    }
+    .hero-label {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: var(--primary-mist); color: var(--primary);
+      border: 1px solid rgba(45,49,145,.25);
+      padding: .375rem 1.1rem; border-radius: 100px;
+      font-size: .75rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; margin-bottom: 1.75rem;
+    }
+    .hero-label::before { content:''; width:7px; height:7px; border-radius:50%; background: var(--primary-light); }
+    .hero h1 { font-family: var(--font-d); font-size: clamp(2.6rem, 4.5vw, 4.2rem); line-height: 1.08; letter-spacing: -.03em; margin-bottom: 1.5rem; }
+    .hero h1 em { font-style: italic; color: var(--primary); }
+    .hero-sub { font-size: 1.05rem; color: var(--muted); font-weight: 300; line-height: 1.8; margin-bottom: 1.25rem; }
+    .hero-desc { font-size: 1rem; font-weight: 500; color: var(--ink); line-height: 1.7; padding-left: 1.1rem; border-left: 3px solid var(--accent); margin-bottom: 2.75rem; }
+    .hero-actions { display: flex; align-items: center; gap: 1.75rem; flex-wrap: wrap; }
+    .hero-meta { display: flex; align-items: center; gap: .7rem; color: var(--muted); font-size: .875rem; }
+    .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--cream-2); }
+
+    /* ── SVG ILLUSTRATION ── */
+    .hero-vis { display: flex; align-items: center; justify-content: center; }
+    .mind-svg { width: min(100%, 500px); height: auto; }
+
+    @keyframes f1  { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-14px) rotate(4deg)} }
+    @keyframes f2  { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-9px) rotate(-3deg)} }
+    @keyframes f3  { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-18px) scale(1.06)} }
+    @keyframes pls { 0%,100%{opacity:.6;transform:scale(.96)} 50%{opacity:.25;transform:scale(1.06)} }
+    @keyframes spn { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    @keyframes sp2 { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+    .fa  { animation: f1 6s ease-in-out infinite; }
+    .fb  { animation: f2 8s ease-in-out infinite 1.2s; }
+    .fc  { animation: f3 7s ease-in-out infinite 2.5s; }
+    .pr  { animation: pls 4s ease-in-out infinite; transform-origin: 250px 240px; }
+    .sp  { animation: spn 28s linear infinite; transform-origin: 250px 240px; }
+    .sp2 { animation: sp2 22s linear infinite; transform-origin: 250px 240px; }
+
+    /* ── SECTION BASE ── */
+    .sec { padding: 7rem 2rem; }
+    .sec-white { background: var(--white); }
+    .sec-cream { background: var(--cream); }
+    .sec-dark  { background: var(--primary-dark); position: relative; overflow: hidden; }
+    .sec-dark::before { content:''; position:absolute; top:-30%; right:-15%; width:700px; height:700px; border-radius:50%; background:rgba(45,49,145,.12); pointer-events:none; }
+    .sec-dark::after  { content:''; position:absolute; bottom:-20%; left:-10%; width:400px; height:400px; border-radius:50%; background:rgba(43,197,197,.06); pointer-events:none; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .sl { font-size:.75rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); margin-bottom:1rem; }
+    .sl-light { color: rgba(196,165,252,.6); }
+    .st { font-family:var(--font-d); font-size:clamp(2rem,3.5vw,3rem); line-height:1.12; letter-spacing:-.025em; margin-bottom:1.25rem; max-width:580px; }
+    .st em { font-style:italic; color:var(--primary); }
+    .st-light { color: #fff; }
+    .st-light em { color: #a5b4fc; }
+    .si { color:var(--muted); font-size:1rem; font-weight:300; max-width:480px; margin-bottom:3.5rem; line-height:1.75; }
+    .si-light { color: rgba(196,210,254,.65); }
+
+    /* ── HOW IT WORKS ── */
+    .areas { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.75rem; }
+    .area-card { border-radius: var(--r-md); padding: 2.25rem; transition: all var(--t); }
+    .area-card:hover { transform: translateY(-6px); box-shadow: var(--sh-md); }
+    .ac-dep { background: linear-gradient(135deg,#E6F9F9 0%,#C0ECEC 100%); }
+    .ac-anx { background: linear-gradient(135deg,#F0FDF4 0%,#D1FAE5 100%); }
+    .ac-str { background: linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 100%); }
+    .area-ico { width:52px; height:52px; margin-bottom:1.25rem; }
+    .area-title { font-family:var(--font-d); font-size:1.45rem; letter-spacing:-.02em; margin-bottom:.6rem; }
+    .area-text { font-size:.9rem; color:var(--muted); font-weight:300; line-height:1.7; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:2rem; margin-top:4rem; padding-top:3.5rem; border-top:1px solid var(--border); }
+    .stat-n { font-family:var(--font-d); font-size:3.5rem; line-height:1; color:var(--primary); letter-spacing:-.04em; }
+    .stat-l { font-size:.875rem; color:var(--muted); margin-top:.4rem; font-weight:300; }
+
+    /* ── WHY ── */
+    .benefits { display:grid; grid-template-columns:repeat(2,1fr); gap:1.5rem; }
+    .bc { background:var(--white); border:1px solid var(--border); border-radius:var(--r-md); padding:2rem; display:flex; gap:1.25rem; align-items:flex-start; transition:all var(--t); }
+    .bc:hover { border-color:rgba(45,49,145,.35); box-shadow:var(--sh-sm); transform:translateY(-3px); }
+    .bico { width:50px; height:50px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .bi1{background:#E6F9F9;} .bi2{background:#FFFBEB;} .bi3{background:#F0FDF4;} .bi4{background:#FFF1F2;}
+    .bt h3 { font-size:1rem; font-weight:700; margin-bottom:.35rem; }
+    .bt p  { font-size:.9rem; color:var(--muted); font-weight:300; line-height:1.65; }
+
+    /* ── PROMO DARK (Co otrzymasz) ── */
+    .results-promo { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; position:relative; z-index:1; }
+    .rpc { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.13); border-radius:var(--r-md); padding:2.25rem; backdrop-filter:blur(8px); transition:all var(--t); }
+    .rpc:hover { background:rgba(255,255,255,.13); transform:translateY(-5px); border-color:rgba(255,255,255,.22); }
+    .rn { font-family:var(--font-d); font-size:3.5rem; line-height:1; color:rgba(165,180,252,.4); margin-bottom:1.25rem; }
+    .rt { font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:.5rem; }
+    .rd { font-size:.9rem; color:rgba(196,210,254,.6); font-weight:300; line-height:1.65; }
+
+    /* ═══════════════════════════════════════
+       TEST SECTION
+    ═══════════════════════════════════════ */
+    #test { background: var(--white); border-top: 1px solid var(--border); }
+
+    /* Intro card */
+    .test-intro-wrap { max-width: 700px; margin: 0 auto; }
+    .scale-legend {
+      display: grid; grid-template-columns: repeat(4,1fr); gap: .75rem;
+      background: var(--cream); border: 1px solid var(--border);
+      border-radius: var(--r-sm); padding: 1.5rem; margin-bottom: 2.5rem;
+      text-align: center;
+    }
+    .sc-num { font-family: var(--font-d); font-size: 2rem; line-height: 1; color: var(--primary); }
+    .sc-lbl { font-size: .75rem; color: var(--muted); margin-top: .3rem; font-weight: 300; line-height: 1.4; }
+    .intro-chips { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 2.5rem; }
+    .intro-chip {
+      display: flex; align-items: center; gap: .5rem;
+      font-size: .85rem; color: var(--muted); font-weight: 400;
+    }
+    .intro-chip svg { color: var(--primary-light); flex-shrink: 0; }
+
+    /* Progress */
+    .test-progress { max-width: 640px; margin: 0 auto 2rem; }
+    .prog-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .6rem; }
+    .prog-count { font-size: .875rem; font-weight: 600; color: var(--muted); }
+    .prog-pct { font-size: .875rem; font-weight: 700; color: var(--primary); }
+    .prog-track { height: 6px; background: var(--cream-2); border-radius: 100px; overflow: hidden; }
+    .prog-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-light)); border-radius: 100px; transition: width .5s var(--ease); }
+
+    /* Question */
+    .q-wrap { max-width: 640px; margin: 0 auto; }
+    .q-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 2.5rem 3rem;
+      margin-bottom: 1.25rem; position: relative; overflow: hidden;
+      box-shadow: var(--sh-sm);
+    }
+    .q-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--primary),var(--primary-light)); }
+    .q-top { display:flex; align-items:center; gap:.75rem; margin-bottom:1.75rem; }
+    .q-num-lbl { font-size:.78rem; font-weight:700; color:var(--muted); letter-spacing:.07em; }
+    .q-cat-badge { font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:.25rem .8rem; border-radius:100px; }
+    .q-cat-S { background:#FEF9C3; color:#92400E; }
+    .q-cat-A { background:#D1FAE5; color:#065F46; }
+    .q-cat-D { background:#E6F9F9; color:#2D3191; }
+    .q-instruction { font-size:.8rem; color:var(--muted); font-weight:300; font-style:italic; margin-bottom:.5rem; }
+    .q-text { font-family:var(--font-d); font-size:1.5rem; line-height:1.35; letter-spacing:-.02em; color:var(--ink); }
+
+    /* Answers 2×2 grid */
+    .ans-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:.875rem; margin-bottom:1.5rem; }
+    .ans-btn {
+      background:var(--white); border:1.5px solid var(--border);
+      border-radius:var(--r-sm); padding:1.25rem 1rem;
+      cursor:pointer; text-align:center;
+      display:flex; flex-direction:column; align-items:center; gap:.35rem;
+      transition:all var(--t);
+    }
+    .ans-btn:hover { border-color:var(--primary-light); background:var(--primary-mist); }
+    .ans-btn.selected { border-color:var(--primary); background:var(--primary); }
+    .ans-val { font-family:var(--font-d); font-size:1.75rem; line-height:1; color:var(--primary); }
+    .ans-btn.selected .ans-val { color:rgba(255,255,255,.75); }
+    .ans-lbl { font-size:.8rem; font-weight:700; color:var(--ink); letter-spacing:.01em; }
+    .ans-btn.selected .ans-lbl { color:#fff; }
+
+    /* Test nav */
+    .test-nav { display:flex; align-items:center; justify-content:space-between; }
+    .btn-ghost {
+      display:inline-flex; align-items:center; gap:.5rem;
+      background:transparent; border:1.5px solid var(--border); color:var(--muted);
+      padding:.7rem 1.4rem; border-radius:100px;
+      font-family:var(--font-b); font-size:.875rem; font-weight:600;
+      cursor:pointer; transition:all var(--t);
+    }
+    .btn-ghost:hover { border-color:var(--primary-light); color:var(--primary); }
+    .btn-ghost svg { transition:transform var(--t); }
+    .btn-ghost:hover svg { transform:translateX(-3px); }
+
+    /* ═══════════════════════════════════════
+       RESULTS SECTION
+    ═══════════════════════════════════════ */
+    #results-section { background: var(--cream); }
+
+    .scores-row { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; margin-bottom:2.5rem; }
+    .score-card {
+      background:var(--white); border:1px solid var(--border);
+      border-radius:var(--r-md); padding:2rem 1.75rem;
+      text-align:center; transition:all var(--t);
+    }
+    .score-card:hover { box-shadow:var(--sh-sm); transform:translateY(-3px); }
+    .score-ico {
+      width:52px; height:52px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      margin:0 auto 1rem;
+    }
+    .score-ico svg { width:26px; height:26px; }
+    .score-cat { font-size:.75rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:.5rem; }
+    .score-num { font-family:var(--font-d); font-size:3.75rem; line-height:1; letter-spacing:-.04em; margin-bottom:.2rem; }
+    .score-of  { font-size:.8rem; color:var(--muted); margin-bottom:1.25rem; }
+    .score-track { height:8px; background:var(--cream-2); border-radius:100px; overflow:hidden; margin-bottom:1rem; }
+    .score-fill  { height:100%; border-radius:100px; width:0%; transition:width 1.4s cubic-bezier(.34,1.2,.64,1); }
+    .sev-badge { display:inline-block; padding:.35rem 1.1rem; border-radius:100px; font-size:.8rem; font-weight:700; letter-spacing:.03em; }
+    .sev-norma   { background:#D1FAE5; color:#065F46; }
+    .sev-lagodna { background:#FEF9C3; color:#78350F; }
+    .sev-umiar   { background:#FED7AA; color:#7C2D12; }
+    .sev-powazna { background:#FEE2E2; color:#7F1D1D; }
+    .sev-bardzo  { background:#7F1D1D; color:#fff; }
+
+    /* Advice */
+    .advice-box {
+      background:var(--white); border:1px solid var(--border);
+      border-left:4px solid var(--primary);
+      border-radius:var(--r-md); padding:2.5rem 3rem;
+      margin-bottom:2rem;
+    }
+    .advice-title { font-family:var(--font-d); font-size:1.5rem; letter-spacing:-.02em; margin-bottom:.75rem; color:var(--ink); }
+    .advice-text  { color:var(--muted); font-weight:300; line-height:1.8; font-size:1rem; }
+
+    /* Disclaimer + webhook */
+    .res-note {
+      background:rgba(18,21,61,.04); border:1px solid var(--border);
+      border-radius:var(--r-sm); padding:1.25rem 1.5rem;
+      font-size:.85rem; color:var(--muted); font-weight:300; line-height:1.75;
+      margin-bottom:1.25rem;
+    }
+    .wh-row { text-align:right; font-size:.8rem; color:var(--muted); font-weight:300; min-height:1.2rem; }
+    .wh-ok   { color:#059669; font-weight:600; }
+    .wh-fail { color:#DC2626; }
+
+    /* ── FOOTER ── */
+    footer { background:var(--ink); color:rgba(255,255,255,.45); padding:3.5rem 2rem; }
+    .foot-in { max-width:640px; margin:0 auto; text-align:center; }
+    .foot-logo { font-family:var(--font-d); font-size:1.5rem; color:rgba(255,255,255,.8); margin-bottom:.5rem; }
+    .foot-logo em { font-style:normal; color:var(--accent-warm); }
+    .foot-tag { font-size:.875rem; margin-bottom:2rem; }
+    .foot-disc { font-size:.8rem; line-height:1.9; color:rgba(255,255,255,.35); border-top:1px solid rgba(255,255,255,.1); padding-top:1.75rem; margin-top:1.5rem; }
+    .foot-disc strong { color:rgba(255,255,255,.55); }
+
+    /* ── REVEAL ── */
+    .rv { opacity:0; transform:translateY(30px); transition:opacity .75s var(--ease),transform .75s var(--ease); }
+    .rv.on { opacity:1; transform:translateY(0); }
+    .d1{transition-delay:.1s} .d2{transition-delay:.2s} .d3{transition-delay:.3s} .d4{transition-delay:.4s}
+
+    /* ── QUESTION TRANSITION ── */
+    @keyframes slideIn  { from{opacity:0;transform:translateX(22px)} to{opacity:1;transform:translateX(0)} }
+    @keyframes fadeUp   { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+    .anim-in  { animation: slideIn .3s var(--ease) forwards; }
+    .anim-ans { animation: fadeUp  .28s var(--ease) .08s both; }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:960px) {
+      .hero { grid-template-columns:1fr; padding:8rem 2rem 4rem; }
+      .hero-vis { order:-1; }
+      .mind-svg { width:min(100%,320px); }
+      .areas { grid-template-columns:1fr; }
+      .benefits { grid-template-columns:1fr; }
+      .results-promo { grid-template-columns:1fr; }
+      .scores-row { grid-template-columns:1fr; }
+    }
+    @media(max-width:680px) {
+      .q-card { padding:1.75rem 1.5rem; }
+      .q-text { font-size:1.25rem; }
+      .scale-legend { grid-template-columns:repeat(2,1fr); }
+      .advice-box { padding:1.75rem 1.5rem; }
+      .stats { grid-template-columns:1fr; }
+    }
+    @media(max-width:560px) {
+      #nav { padding:1rem 1.25rem; }
+      .hero { padding:7rem 1.5rem 3rem; }
+      .sec { padding:5rem 1.5rem; }
+      .ans-grid { grid-template-columns:repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="hero-bg"></div>
+
+<!-- ═══ NAV ═══ -->
+<nav id="nav">
+  <a href="https://kosmapharma.com/" target="_blank" class="nav-logo">
+    <img src="https://kosmapharma.com/wp-content/uploads/2025/07/KOSMA-PHARMA-HASLO-1024x268.webp" alt="Kosma Pharma" style="height:38px;width:auto;display:block;">
+  </a>
+  <a href="#test" class="btn btn-sm btn-primary">
+    Rozpocznij badanie
+    <svg class="arrow" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-text">
+    <div class="hero-label">Kosma Pharma · DASS-21</div>
+    <h1>Sprawdź swój<br>stan <em>psychiczny</em><br>w kilka minut</h1>
+    <p class="hero-sub">Czujesz się przytłoczony? Masz trudności z koncentracją, snem lub codziennymi obowiązkami? Nie ignoruj sygnałów, które wysyła Twoje ciało i umysł.</p>
+    <p class="hero-desc">DASS-21 to krótkie, naukowo opracowane badanie, które pomoże Ci lepiej zrozumieć Twój stan emocjonalny.</p>
+    <div class="hero-actions">
+      <a href="#test" class="btn btn-lg btn-primary">
+        Rozpocznij badanie
+        <svg class="arrow" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <div class="hero-meta">
+        <span>21 pytań</span><div class="dot"></div>
+        <span>5 minut</span><div class="dot"></div>
+        <span>Wynik od razu</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-vis">
+    <svg class="mind-svg" viewBox="0 0 500 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="mindBg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#E6F9F9"/>
+          <stop offset="100%" stop-color="#C0ECEC" stop-opacity=".6"/>
+        </radialGradient>
+      </defs>
+      <circle class="sp pr" cx="250" cy="240" r="218" fill="none" stroke="#80CDD8" stroke-width=".8" stroke-dasharray="10 16" opacity=".25"/>
+      <circle class="sp2" cx="250" cy="240" r="195" fill="none" stroke="#2BC5C5" stroke-width=".6" stroke-dasharray="4 20" opacity=".2"/>
+      <circle cx="250" cy="240" r="170" fill="url(#mindBg)" stroke="#A0DEE4" stroke-width="1.5"/>
+      <circle cx="250" cy="240" r="140" fill="none" stroke="#C8EEF0" stroke-width="1"/>
+      <g opacity=".55" stroke="#4A4EB5" stroke-width="1.2" stroke-linecap="round">
+        <line x1="210" y1="175" x2="250" y2="210"/><line x1="250" y1="210" x2="295" y2="185"/>
+        <line x1="295" y1="185" x2="310" y2="245"/><line x1="310" y1="245" x2="270" y2="275"/>
+        <line x1="270" y1="275" x2="225" y2="270"/><line x1="225" y1="270" x2="200" y2="240"/>
+        <line x1="200" y1="240" x2="210" y2="175"/><line x1="250" y1="210" x2="270" y2="275"/>
+        <line x1="250" y1="210" x2="225" y2="270"/><line x1="200" y1="240" x2="225" y2="270"/>
+        <line x1="250" y1="210" x2="250" y2="148" opacity=".4"/>
+        <line x1="295" y1="185" x2="340" y2="158" opacity=".3"/>
+        <line x1="310" y1="245" x2="360" y2="250" opacity=".3"/>
+        <line x1="270" y1="275" x2="285" y2="330" opacity=".35"/>
+        <line x1="225" y1="270" x2="205" y2="325" opacity=".35"/>
+        <line x1="200" y1="240" x2="148" y2="240" opacity=".3"/>
+        <line x1="210" y1="175" x2="175" y2="148" opacity=".3"/>
+      </g>
+      <g class="fa"><circle cx="210" cy="175" r="18" fill="#2D3191" opacity=".12"/><circle cx="210" cy="175" r="9" fill="#1E2070" opacity=".85"/><circle cx="210" cy="175" r="4" fill="white" opacity=".6"/></g>
+      <g class="fb"><circle cx="295" cy="185" r="18" fill="#34D399" opacity=".12"/><circle cx="295" cy="185" r="9" fill="#059669" opacity=".8"/><circle cx="295" cy="185" r="4" fill="white" opacity=".6"/></g>
+      <g class="fc"><circle cx="310" cy="245" r="16" fill="#FCD34D" opacity=".15"/><circle cx="310" cy="245" r="8" fill="#D97706" opacity=".8"/><circle cx="310" cy="245" r="3.5" fill="white" opacity=".6"/></g>
+      <g class="fb"><circle cx="250" cy="210" r="24" fill="#2D3191" opacity=".15"/><circle cx="250" cy="210" r="12" fill="#4338CA" opacity=".9"/><circle cx="250" cy="210" r="5" fill="white" opacity=".7"/></g>
+      <circle cx="270" cy="275" r="8" fill="#4A4EB5" opacity=".75"/>
+      <circle cx="225" cy="270" r="7" fill="#4A4EB5" opacity=".7"/>
+      <circle cx="200" cy="240" r="7" fill="#2D3191" opacity=".75"/>
+      <circle cx="250" cy="148" r="5" fill="#2BC5C5" opacity=".65"/>
+      <circle cx="340" cy="158" r="4.5" fill="#5F8A6C" opacity=".6"/>
+      <circle cx="360" cy="250" r="4" fill="#059669" opacity=".55"/>
+      <circle cx="285" cy="330" r="4.5" fill="#D97706" opacity=".6"/>
+      <circle cx="205" cy="325" r="4" fill="#1E2070" opacity=".55"/>
+      <circle cx="148" cy="240" r="4" fill="#2BC5C5" opacity=".55"/>
+      <circle cx="175" cy="148" r="4.5" fill="#2D3191" opacity=".5"/>
+      <g class="fa"><rect x="48" y="155" width="34" height="34" rx="8" fill="#E6F9F9" stroke="#80CDD8" stroke-width="1.5" opacity=".8" transform="rotate(15,65,172)"/></g>
+      <g class="fb"><circle cx="420" cy="165" r="22" fill="none" stroke="#2BC5C5" stroke-width="1.5" opacity=".55"/><circle cx="420" cy="165" r="7" fill="#2BC5C5" opacity=".4"/></g>
+      <g class="fc"><path d="M72 320 L95 283 L118 320 Z" fill="#F0FDF4" stroke="#6EE7B7" stroke-width="1.5" opacity=".8"/></g>
+      <g class="fa"><circle cx="400" cy="345" r="28" fill="#FFFBEB" stroke="#FCD34D" stroke-width="1.5" opacity=".7"/><circle cx="400" cy="345" r="8" fill="#F59E0B" opacity=".35"/></g>
+      <circle cx="130" cy="110" r="3" fill="#80CDD8" opacity=".5"/>
+      <circle cx="360" cy="120" r="3.5" fill="#2BC5C5" opacity=".4"/>
+      <circle cx="55"  cy="255" r="3" fill="#1E2070" opacity=".4"/>
+      <circle cx="440" cy="265" r="3" fill="#6EE7B7" opacity=".5"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══ JAK TO DZIAŁA ═══ -->
+<section class="sec sec-white" id="jak-to-dziala">
+  <div class="container">
+    <p class="sl rv">Na czym polega badanie</p>
+    <h2 class="st rv d1">Trzy obszary,<br><em>jedna ocena</em></h2>
+    <p class="si rv d2">DASS-21 to zestaw 21 pytań oceniających kluczowe wymiary Twojego stanu emocjonalnego, stosowany przez specjalistów na całym świecie.</p>
+    <div class="areas">
+      <div class="area-card ac-dep rv d1">
+        <svg class="area-ico" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="26" r="22" fill="#A0DEE4" opacity=".4"/><path d="M17 30 C17 30 19.5 26 26 26 C32.5 26 35 30 35 30" stroke="#4338CA" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="22" r="2.5" fill="#4338CA"/><circle cx="32" cy="22" r="2.5" fill="#4338CA"/></svg>
+        <h3 class="area-title">Poziom depresji</h3>
+        <p class="area-text">Ocena nastroju, motywacji, poczucia wartości i zdolności do odczuwania radości w codziennym życiu.</p>
+      </div>
+      <div class="area-card ac-anx rv d2">
+        <svg class="area-ico" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="26" r="22" fill="#BBF7D0" opacity=".45"/><circle cx="26" cy="26" r="13" stroke="#059669" stroke-width="1.5" stroke-dasharray="4 3.5" opacity=".6"/><path d="M26 15 L26 28" stroke="#059669" stroke-width="2.5" stroke-linecap="round"/><circle cx="26" cy="33" r="2.5" fill="#059669"/></svg>
+        <h3 class="area-title">Poziom lęku</h3>
+        <p class="area-text">Badanie objawów napięcia, niepokoju i fizycznych reakcji lękowych na sytuacje dnia codziennego.</p>
+      </div>
+      <div class="area-card ac-str rv d3">
+        <svg class="area-ico" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="26" r="22" fill="#FEF9C3" opacity=".6"/><path d="M16 26 Q19 18 23 26 Q27 34 31 26 Q35 18 36 26" stroke="#D97706" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+        <h3 class="area-title">Poziom stresu</h3>
+        <p class="area-text">Pomiar napięcia, drażliwości i zdolności do relaksacji w obliczu wyzwań życia codziennego.</p>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="rv d1" style="text-align:center"><div class="stat-n">21</div><div class="stat-l">pytań w kwestionariuszu</div></div>
+      <div class="rv d2" style="text-align:center"><div class="stat-n">5'</div><div class="stat-l">minut na wypełnienie</div></div>
+      <div class="rv d3" style="text-align:center"><div class="stat-n">→</div><div class="stat-l">wynik natychmiast</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ DLACZEGO WARTO ═══ -->
+<section class="sec sec-cream">
+  <div class="container">
+    <p class="sl rv">Dlaczego warto</p>
+    <h2 class="st rv d1">Powody, dla których<br><em>to ma sens</em></h2>
+    <p class="si rv d2">Badanie jest pierwszym, bezpiecznym krokiem w kierunku lepszego rozumienia swojego stanu emocjonalnego.</p>
+    <div class="benefits">
+      <div class="bc rv d1">
+        <div class="bico bi1"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="#4338CA" stroke-width="1.75" stroke-linejoin="round"/></svg></div>
+        <div class="bt"><h3>Szybka i wygodna forma online</h3><p>Wypełnij test w dowolnym miejscu i czasie — bez rejestracji, bez oczekiwania na wizytę.</p></div>
+      </div>
+      <div class="bc rv d2">
+        <div class="bico bi2"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 12L11 14L15 10M12 3C7.03 3 3 7.03 3 12C3 16.97 7.03 21 12 21C16.97 21 21 16.97 21 12C21 7.03 16.97 3 12 3Z" stroke="#D97706" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="bt"><h3>Oparta na sprawdzonym narzędziu</h3><p>DASS-21 stosowany jest przez psychologów i psychiatrów na całym świecie od ponad 30 lat.</p></div>
+      </div>
+      <div class="bc rv d3">
+        <div class="bico bi3"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="#059669" stroke-width="1.75"/><path d="M21 21L16.65 16.65M11 8V14M8 11H14" stroke="#059669" stroke-width="1.75" stroke-linecap="round"/></svg></div>
+        <div class="bt"><h3>Pomaga zidentyfikować pierwsze sygnały</h3><p>Dostrzega subtelne zmiany w samopoczuciu, zanim staną się poważnym problemem.</p></div>
+      </div>
+      <div class="bc rv d4">
+        <div class="bico bi4"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21C12 21 4 16 4 9C4 6.79 5.79 5 8 5C9.37 5 10.57 5.68 11.32 6.72L12 7.67L12.68 6.72C13.43 5.68 14.63 5 16 5C18.21 5 20 6.79 20 9C20 16 12 21 12 21Z" stroke="#E11D48" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="bt"><h3>Pierwszy krok do poprawy samopoczucia</h3><p>Świadomość własnego stanu emocjonalnego to fundament każdej pozytywnej zmiany.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CO OTRZYMASZ (promo dark) ═══ -->
+<section class="sec sec-dark">
+  <div class="container">
+    <p class="sl sl-light rv">Co otrzymasz</p>
+    <h2 class="st st-light rv d1">Twój indywidualny<br><em>raport</em> w 3 punktach</h2>
+    <p class="si si-light rv d2">Po zakończeniu badania otrzymasz szczegółowe wyniki dla każdego z trzech obszarów.</p>
+    <div class="results-promo">
+      <div class="rpc rv d1"><div class="rn">01</div><h3 class="rt">Indywidualny wynik</h3><p class="rd">Punktacja w obszarach depresji, lęku i stresu z zaznaczeniem poziomu na skali normatywnej.</p></div>
+      <div class="rpc rv d2"><div class="rn">02</div><h3 class="rt">Interpretacja rezultatów</h3><p class="rd">Jasne wyjaśnienie wyników — bez medycznego żargonu, w przystępnym języku.</p></div>
+      <div class="rpc rv d3"><div class="rn">03</div><h3 class="rt">Wskazówki co dalej</h3><p class="rd">Praktyczne sugestie dostosowane do Twojego wyniku, które pomogą podjąć kolejny krok.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     TEST SECTION
+════════════════════════════════════════════ -->
+<section class="sec" id="test" style="background:var(--white); border-top:1px solid var(--border);">
+  <div class="container">
+
+    <!-- INTRO -->
+    <div id="test-intro">
+      <div class="test-intro-wrap">
+        <p class="sl rv">Kwestionariusz DASS-21</p>
+        <h2 class="st rv d1" style="max-width:100%;">Czas na <em>badanie</em></h2>
+        <p class="si rv d2" style="max-width:600px; margin-bottom:2rem;">
+          Przeczytaj każde stwierdzenie i zaznacz, w jakim stopniu odnosiło się ono do Ciebie
+          <strong>w ciągu ostatniego tygodnia</strong>. Nie ma odpowiedzi dobrych ani złych.
+        </p>
+
+        <div class="scale-legend rv d2">
+          <div><div class="sc-num">0</div><div class="sc-lbl">Nie dotyczy mnie<br>w ogóle — Nigdy</div></div>
+          <div><div class="sc-num">1</div><div class="sc-lbl">Dotyczy mnie w pewnym stopniu<br>— Czasami</div></div>
+          <div><div class="sc-num">2</div><div class="sc-lbl">Dotyczy mnie w znacznym stopniu<br>— Często</div></div>
+          <div><div class="sc-num">3</div><div class="sc-lbl">Dotyczy mnie w bardzo dużym stopniu<br>— Zawsze/Prawie zawsze</div></div>
+        </div>
+
+        <div class="intro-chips rv d3">
+          <div class="intro-chip">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.75"/><path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+            Około 5 minut
+          </div>
+          <div class="intro-chip">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.75"/><path d="M3 10H21M8 3V7M16 3V7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+            21 pytań
+          </div>
+          <div class="intro-chip">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="1.75"/><path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Anonimowe
+          </div>
+        </div>
+
+        <button onclick="startTest()" class="btn btn-lg btn-primary rv d3">
+          Zacznij badanie
+          <svg class="arrow" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- TEST BODY (hidden until startTest()) -->
+    <div id="test-body" class="hidden">
+
+      <!-- Progress -->
+      <div class="test-progress">
+        <div class="prog-top">
+          <span class="prog-count" id="prog-count">Pytanie 1 z 21</span>
+          <span class="prog-pct"   id="prog-pct">0%</span>
+        </div>
+        <div class="prog-track">
+          <div class="prog-fill" id="prog-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Question + Answers -->
+      <div class="q-wrap">
+        <div class="q-card" id="q-card">
+          <div class="q-top">
+            <span class="q-num-lbl" id="q-num-lbl">PYTANIE 01</span>
+            <span class="q-cat-badge" id="q-cat-badge"></span>
+          </div>
+          <div class="q-instruction">W ciągu ostatniego tygodnia…</div>
+          <p class="q-text" id="q-text"></p>
+        </div>
+
+        <div class="ans-grid" id="ans-grid"></div>
+
+        <div class="test-nav">
+          <button id="btn-back" class="btn-ghost hidden" onclick="goBack()">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13 8H3M3 8L7 4M3 8L7 12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Wstecz
+          </button>
+          <div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     RESULTS SECTION (hidden until test done)
+════════════════════════════════════════════ -->
+<section class="sec" id="results-section" style="background:var(--cream);" class="hidden">
+  <div class="container">
+    <p class="sl">Twoje wyniki</p>
+    <h2 class="st" style="max-width:100%; margin-bottom:.75rem;">Oto Twój <em>indywidualny raport</em></h2>
+    <p class="si" style="margin-bottom:2.5rem;">Poniżej znajdziesz wyniki w trzech obszarach. Wyniki zostały obliczone zgodnie z metodologią DASS-21.</p>
+
+    <div class="scores-row" id="scores-row"></div>
+
+    <div class="advice-box" id="advice-box"></div>
+
+    <div class="res-note">
+      <strong>Ważne:</strong> To badanie ma charakter informacyjny i przesiewowy — nie zastępuje diagnozy specjalisty. Jeśli wyniki Cię niepokoją, warto skonsultować się z psychologiem lub psychiatrą.
+    </div>
+
+    <div class="wh-row" id="wh-row"></div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div class="foot-in">
+    <div style="margin-bottom:1.25rem;">
+      <img src="https://kosmapharma.com/wp-content/uploads/2025/07/KOSMA-PHARMA-HASLO-1024x268.webp" alt="Kosma Pharma" style="height:44px;width:auto;opacity:.85;filter:brightness(0) invert(1);">
+    </div>
+    <p class="foot-tag">Your psychobiotic partner</p>
+    <div class="foot-disc">
+      <strong>Ważna informacja:</strong> To badanie ma charakter informacyjny i przesiewowy — nie zastępuje diagnozy specjalisty. Jeśli wyniki Cię niepokoją, warto skonsultować się z psychologiem lub psychiatrą.
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ════════════════════════════════════
+   NAV + REVEAL
+════════════════════════════════════ */
+const nav = document.getElementById('nav');
+addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 60));
+
+const rvObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('on'); });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.rv').forEach(el => rvObs.observe(el));
+document.querySelectorAll('.hero .rv').forEach(el => el.classList.add('on'));
+
+/* ════════════════════════════════════
+   DASS-21 DATA
+════════════════════════════════════ */
+const QUESTIONS = [
+  { q: 'Trudno było mi się odprężyć.',                                                                                                           cat: 'S' },
+  { q: 'Odczuwałam/-em suchość w ustach.',                                                                                                      cat: 'A' },
+  { q: 'Nie mogłam/-em doświadczyć pozytywnych uczuć.',                                                                                        cat: 'D' },
+  { q: 'Odczuwałam/-em trudność w oddychaniu (np. duszności, przyspieszony oddech bez wcześniejszego wysiłku fizycznego).',                    cat: 'A' },
+  { q: 'Trudno było mi znaleźć inicjatywę do działania.',                                                                                       cat: 'D' },
+  { q: 'Miałam/-em skłonności do przesadnego reagowania na różne sytuacje.',                                                                   cat: 'S' },
+  { q: 'Odczuwałam/-em drżenie np. rąk.',                                                                                                      cat: 'A' },
+  { q: 'Czułam/-em, że zużywam dużo nerwowej energii.',                                                                                        cat: 'S' },
+  { q: 'Byłam/-em przestraszony/a sytuacjami, gdzie mogłam/-em spanikować lub ośmieszyć się.',                                                cat: 'A' },
+  { q: 'Czułam/-em, że nie ma przede mną przyszłości, nic mnie nie czeka w życiu.',                                                           cat: 'D' },
+  { q: 'Czułam/-em się pobudzona/-y (niespokojna/-y).',                                                                                        cat: 'S' },
+  { q: 'Trudno było się zrelaksować.',                                                                                                          cat: 'S' },
+  { q: 'Czułam/-em się smutna/-y i przygnębiona/-y.',                                                                                          cat: 'D' },
+  { q: 'Byłam/-em nietolerancyjna/-y do wszystkiego, co uniemożliwiało mi wzięcie udziału w tym, co robiłam/-em.',                            cat: 'S' },
+  { q: 'Byłam/-em bliska/-i wpadnięciu w panikę.',                                                                                             cat: 'A' },
+  { q: 'Nie byłam/-em zdolna/-y do odczuwania entuzjazmu.',                                                                                    cat: 'D' },
+  { q: 'Czułam/-em, że jestem niewiele warta/-y.',                                                                                             cat: 'D' },
+  { q: 'Czułam/-em, że jestem raczej przewrażliwiona/-y.',                                                                                     cat: 'S' },
+  { q: 'Zdałam/-em sobie sprawę z pracy mojego serca mimo braku wysiłku fizycznego (np. przyspieszone bicie serca, zanik bicia serca).',      cat: 'A' },
+  { q: 'Czułam/-em się przestraszona/-y bez powodu.',                                                                                          cat: 'A' },
+  { q: 'Czułam/-em, że życie nie ma sensu.',                                                                                                   cat: 'D' },
+];
+
+// 0-based question indices per subscale
+const DEP = [2, 4, 9, 12, 15, 16, 20];
+const ANX = [1, 3, 6,  8, 14, 18, 19];
+const STR = [0, 5, 7, 10, 11, 13, 17];
+
+const CAT_LABEL = { D: 'Depresja', A: 'Lęk', S: 'Stres' };
+
+const ANS_OPTS = [
+  { val: 0, lbl: 'Nigdy' },
+  { val: 1, lbl: 'Czasami' },
+  { val: 2, lbl: 'Często' },
+  { val: 3, lbl: 'Zawsze' },
+];
+
+// Severity tables (scores are DASS-42 scale = raw × 2)
+const SEVERITY = {
+  D: [
+    { max:  9, level:'norma',   label:'W normie',       cls:'sev-norma',   color:'#059669' },
+    { max: 13, level:'lagodna', label:'Łagodna',        cls:'sev-lagodna', color:'#CA8A04' },
+    { max: 20, level:'umiar',   label:'Umiarkowana',    cls:'sev-umiar',   color:'#D97706' },
+    { max: 27, level:'powazna', label:'Poważna',        cls:'sev-powazna', color:'#DC2626' },
+    { max: 42, level:'bardzo',  label:'Bardzo poważna', cls:'sev-bardzo',  color:'#991B1B' },
+  ],
+  A: [
+    { max:  7, level:'norma',   label:'W normie',       cls:'sev-norma',   color:'#059669' },
+    { max:  9, level:'lagodna', label:'Łagodna',        cls:'sev-lagodna', color:'#CA8A04' },
+    { max: 14, level:'umiar',   label:'Umiarkowana',    cls:'sev-umiar',   color:'#D97706' },
+    { max: 19, level:'powazna', label:'Poważna',        cls:'sev-powazna', color:'#DC2626' },
+    { max: 42, level:'bardzo',  label:'Bardzo poważna', cls:'sev-bardzo',  color:'#991B1B' },
+  ],
+  S: [
+    { max: 14, level:'norma',   label:'W normie',       cls:'sev-norma',   color:'#059669' },
+    { max: 18, level:'lagodna', label:'Łagodna',        cls:'sev-lagodna', color:'#CA8A04' },
+    { max: 25, level:'umiar',   label:'Umiarkowana',    cls:'sev-umiar',   color:'#D97706' },
+    { max: 33, level:'powazna', label:'Poważna',        cls:'sev-powazna', color:'#DC2626' },
+    { max: 42, level:'bardzo',  label:'Bardzo poważna', cls:'sev-bardzo',  color:'#991B1B' },
+  ],
+};
+
+const ADVICE = {
+  norma:   { title: 'Twoje wyniki mieszczą się w normie',
+             text:  'Aktualnie dobrze radzisz sobie z emocjami — to dobry znak. Kontynuuj dbanie o siebie: regularny sen, aktywność fizyczna i bliskie relacje to fundament dobrostanu psychicznego.' },
+  lagodna: { title: 'Łagodne trudności — warto zadbać o siebie',
+             text:  'Wyniki wskazują na łagodny poziom trudności. To dobry moment, by zadbać o codzienne nawyki: regularny odpoczynek, ograniczenie stresorów, rozmowy z bliskimi. Możesz też rozważyć konsultację ze specjalistą.' },
+  umiar:   { title: 'Umiarkowane trudności — rozważ wsparcie',
+             text:  'Twoje wyniki sugerują umiarkowany poziom trudności emocjonalnych. Warto porozmawiać ze specjalistą — psychologiem lub psychiatrą. Wczesna pomoc może znacząco poprawić jakość życia.' },
+  powazna: { title: 'Poważne trudności — zalecana konsultacja',
+             text:  'Wyniki wskazują na poważne trudności emocjonalne. Zalecamy jak najszybszą konsultację ze specjalistą — psychologiem lub psychiatrą. Pomoc jest dostępna i skuteczna.' },
+  bardzo:  { title: 'Bardzo poważne trudności — skontaktuj się ze specjalistą',
+             text:  'Twoje wyniki są na bardzo poważnym poziomie. Prosimy, skontaktuj się jak najszybciej z psychologiem, psychiatrą lub zadzwoń na telefon zaufania (np. 116 123). Nie jesteś sam/a — pomoc jest blisko.' },
+};
+
+/* ════════════════════════════════════
+   TEST STATE
+════════════════════════════════════ */
+let currentQ     = 0;
+let answers      = new Array(21).fill(null);
+let busy         = false;
+
+/* ════════════════════════════════════
+   TEST CONTROL
+════════════════════════════════════ */
+function startTest() {
+  document.getElementById('test-intro').classList.add('hidden');
+  document.getElementById('test-body').classList.remove('hidden');
+  answers  = new Array(21).fill(null);
+  currentQ = 0;
+  renderQ(0);
+}
+
+function renderQ(idx) {
+  const q = QUESTIONS[idx];
+
+  // Progress
+  const pct = Math.round((idx / 21) * 100);
+  document.getElementById('prog-fill').style.width  = pct + '%';
+  document.getElementById('prog-count').textContent = `Pytanie ${idx + 1} z 21`;
+  document.getElementById('prog-pct').textContent   = pct + '%';
+
+  // Question card
+  const numStr = String(idx + 1).padStart(2, '0');
+  document.getElementById('q-num-lbl').textContent  = `PYTANIE ${numStr}`;
+  const badge = document.getElementById('q-cat-badge');
+  badge.textContent  = CAT_LABEL[q.cat];
+  badge.className    = `q-cat-badge q-cat-${q.cat}`;
+  document.getElementById('q-text').textContent = q.q;
+
+  // Answers
+  const grid = document.getElementById('ans-grid');
+  grid.innerHTML = ANS_OPTS.map(o => `
+    <button class="ans-btn${answers[idx] === o.val ? ' selected' : ''}" onclick="pick(${o.val})">
+      <span class="ans-val">${o.val}</span>
+      <span class="ans-lbl">${o.lbl}</span>
+    </button>
+  `).join('');
+
+  // Back button
+  document.getElementById('btn-back').classList.toggle('hidden', idx === 0);
+
+  // Animate in
+  const card = document.getElementById('q-card');
+  card.classList.remove('anim-in');
+  void card.offsetWidth;
+  card.classList.add('anim-in');
+
+  grid.classList.remove('anim-ans');
+  void grid.offsetWidth;
+  grid.classList.add('anim-ans');
+}
+
+function pick(val) {
+  if (busy) return;
+  answers[currentQ] = val;
+
+  // Highlight selection
+  document.querySelectorAll('.ans-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', i === val);
+  });
+
+  busy = true;
+  setTimeout(() => {
+    busy = false;
+    if (currentQ < 20) {
+      currentQ++;
+      renderQ(currentQ);
+    } else {
+      showResults();
+    }
+  }, 380);
+}
+
+function goBack() {
+  if (currentQ <= 0 || busy) return;
+  currentQ--;
+  renderQ(currentQ);
+}
+
+/* ════════════════════════════════════
+   SCORING
+════════════════════════════════════ */
+function sumSubscale(indices) {
+  return indices.reduce((s, i) => s + (answers[i] ?? 0), 0);
+}
+
+function getSev(score, type) {
+  return SEVERITY[type].find(s => score <= s.max);
+}
+
+/* ════════════════════════════════════
+   RESULTS
+════════════════════════════════════ */
+function showResults() {
+  const depRaw = sumSubscale(DEP);
+  const anxRaw = sumSubscale(ANX);
+  const strRaw = sumSubscale(STR);
+  const dep = depRaw * 2;
+  const anx = anxRaw * 2;
+  const str = strRaw * 2;
+
+  const dSev = getSev(dep, 'D');
+  const aSev = getSev(anx, 'A');
+  const sSev = getSev(str, 'S');
+
+  // Determine worst severity for advice
+  const levels = ['norma','lagodna','umiar','powazna','bardzo'];
+  const maxSev = [dSev, aSev, sSev].reduce((w, s) =>
+    levels.indexOf(s.level) > levels.indexOf(w.level) ? s : w, dSev);
+
+  // Transition: hide test, show results
+  document.getElementById('test').classList.add('hidden');
+  const resSec = document.getElementById('results-section');
+  resSec.classList.remove('hidden');
+  setTimeout(() => resSec.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+
+  // Render score cards
+  const cats = [
+    { key:'D', label:'Depresja', score:dep, raw:depRaw, sev:dSev,
+      ico:`<svg viewBox="0 0 26 26" fill="none" width="26" height="26"><path d="M8 16c0 0 1.5-2 5-2s5 2 5 2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><circle cx="10" cy="11" r="1.5" fill="currentColor"/><circle cx="16" cy="11" r="1.5" fill="currentColor"/></svg>`,
+      bg:'#E6F9F9', ic:'#4338CA' },
+    { key:'A', label:'Lęk', score:anx, raw:anxRaw, sev:aSev,
+      ico:`<svg viewBox="0 0 26 26" fill="none" width="26" height="26"><circle cx="13" cy="13" r="8" stroke="currentColor" stroke-width="1.75" stroke-dasharray="3.5 3"/><path d="M13 8v6M13 17v1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+      bg:'#F0FDF4', ic:'#059669' },
+    { key:'S', label:'Stres', score:str, raw:strRaw, sev:sSev,
+      ico:`<svg viewBox="0 0 26 26" fill="none" width="26" height="26"><path d="M5 13q3.5-8 8 0 4.5 8 8 0" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" fill="none"/></svg>`,
+      bg:'#FFFBEB', ic:'#D97706' },
+  ];
+
+  document.getElementById('scores-row').innerHTML = cats.map(c => `
+    <div class="score-card">
+      <div class="score-ico" style="background:${c.bg}; color:${c.ic};">${c.ico}</div>
+      <div class="score-cat">${c.label}</div>
+      <div class="score-num" style="color:${c.sev.color};">${c.score}</div>
+      <div class="score-of">/ 42 pkt (surowy: ${c.raw}/21)</div>
+      <div class="score-track">
+        <div class="score-fill" id="sf-${c.key}" style="background:${c.sev.color};"></div>
+      </div>
+      <span class="sev-badge ${c.sev.cls}">${c.sev.label}</span>
+    </div>
+  `).join('');
+
+  // Animate bars
+  requestAnimationFrame(() => setTimeout(() => {
+    cats.forEach(c => {
+      const el = document.getElementById(`sf-${c.key}`);
+      if (el) el.style.width = `${(c.score / 42) * 100}%`;
+    });
+  }, 200));
+
+  // Advice
+  const adv = ADVICE[maxSev.level];
+  document.getElementById('advice-box').innerHTML = `
+    <h3 class="advice-title">${adv.title}</h3>
+    <p class="advice-text">${adv.text}</p>
+  `;
+
+  // Build payload and send
+  const payload = {
+    timestamp: new Date().toISOString(),
+    source:    'dass21-landing',
+    depression: { raw_score: depRaw, scaled_score: dep, severity: dSev.label },
+    anxiety:    { raw_score: anxRaw, scaled_score: anx, severity: aSev.label },
+    stress:     { raw_score: strRaw, scaled_score: str, severity: sSev.label },
+    answers:    answers,
+  };
+
+  sendWebhook(payload);
+}
+
+/* ════════════════════════════════════
+   WEBHOOK
+════════════════════════════════════ */
+async function sendWebhook(data) {
+  const el = document.getElementById('wh-row');
+  el.textContent = 'Zapisywanie wyników…';
+  try {
+    const res = await fetch(
+      'https://automatyyyyka.app.n8n.cloud/webhook/e424467f-0e41-42e2-8624-cfe732cb0f53',
+      {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(data),
+      }
+    );
+    if (res.ok) {
+      el.innerHTML = '<span class="wh-ok">✓ Wyniki zostały zapisane</span>';
+    } else {
+      el.innerHTML = `<span class="wh-fail">Błąd serwera (${res.status}) — wyniki nie zostały zapisane</span>`;
+    }
+  } catch (err) {
+    el.innerHTML = '<span class="wh-fail">Brak połączenia — wyniki nie zostały zapisane</span>';
+    console.warn('[DASS-21] webhook error:', err);
+  }
+}
+</script>
+</body>
+</html>
