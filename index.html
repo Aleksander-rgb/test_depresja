@@ -291,13 +291,46 @@
     .wh-fail { color:#DC2626; }
 
     /* ── FOOTER ── */
-    footer { background:var(--ink); color:rgba(255,255,255,.45); padding:3.5rem 2rem; }
+    footer { background:var(--white); color:var(--muted); padding:3.5rem 2rem; border-top:3px solid var(--primary); }
     .foot-in { max-width:640px; margin:0 auto; text-align:center; }
-    .foot-logo { font-family:var(--font-d); font-size:1.5rem; color:rgba(255,255,255,.8); margin-bottom:.5rem; }
-    .foot-logo em { font-style:normal; color:var(--accent-warm); }
-    .foot-tag { font-size:.875rem; margin-bottom:2rem; }
-    .foot-disc { font-size:.8rem; line-height:1.9; color:rgba(255,255,255,.35); border-top:1px solid rgba(255,255,255,.1); padding-top:1.75rem; margin-top:1.5rem; }
-    .foot-disc strong { color:rgba(255,255,255,.55); }
+    .foot-logo { font-family:var(--font-d); font-size:1.5rem; color:var(--primary-dark); margin-bottom:.5rem; }
+    .foot-logo em { font-style:normal; color:var(--accent); }
+    .foot-tag { font-size:.875rem; margin-bottom:2rem; color:var(--muted); }
+    .foot-disc { font-size:.8rem; line-height:1.9; color:var(--muted); border-top:1px solid var(--border); padding-top:1.75rem; margin-top:1.5rem; }
+    .foot-disc strong { color:var(--ink); }
+
+    /* ── PRODUKTY KARUZELA ── */
+    .prod-section { background: var(--white); border-top: 1px solid var(--border); }
+    .prod-wrap { position: relative; padding: 0 2rem; }
+    .prod-outer { overflow: hidden; }
+    .prod-track { display: flex; transition: transform .42s var(--ease); }
+    .prod-card { flex: 0 0 25%; padding: 0 .75rem; }
+    .prod-inner {
+      background: var(--cream); border: 1px solid var(--border);
+      border-radius: var(--r-md); padding: 1.75rem 1.25rem 2rem;
+      text-align: center; transition: all var(--t);
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .prod-inner:hover { transform: translateY(-5px); box-shadow: var(--sh-md); border-color: rgba(45,49,145,.25); }
+    .prod-img { width: 100%; max-height: 200px; object-fit: contain; margin-bottom: 1.25rem; }
+    .prod-name { font-family: var(--font-d); font-size: 1.05rem; color: var(--ink); letter-spacing: -.01em; line-height: 1.3; }
+    .prod-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 42px; height: 42px; border-radius: 50%;
+      background: var(--white); border: 1.5px solid var(--border);
+      color: var(--primary); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--t); z-index: 2; font-size: 1rem;
+    }
+    .prod-arrow:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .prod-arrow:disabled { opacity: .3; pointer-events: none; }
+    .prod-prev { left: -6px; }
+    .prod-next { right: -6px; }
+    .prod-dots { display: flex; justify-content: center; gap: .5rem; margin-top: 1.75rem; }
+    .prod-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cream-2); cursor: pointer; transition: background var(--t); border: none; padding: 0; }
+    .prod-dot.active { background: var(--primary); }
+    @media(max-width: 860px) { .prod-card { flex: 0 0 50%; } }
+    @media(max-width: 520px) { .prod-card { flex: 0 0 100%; } .prod-wrap { padding: 0 2.5rem; } }
 
     /* ── REVEAL ── */
     .rv { opacity:0; transform:translateY(30px); transition:opacity .75s var(--ease),transform .75s var(--ease); }
@@ -584,10 +617,6 @@
 ════════════════════════════════════════════ -->
 <section class="sec" id="results-section" style="background:var(--cream);" class="hidden">
   <div class="container">
-    <p class="sl">Twoje wyniki</p>
-    <h2 class="st" style="max-width:100%; margin-bottom:.75rem;">Oto Twój <em>indywidualny raport</em></h2>
-    <p class="si" style="margin-bottom:2.5rem;">Poniżej znajdziesz wyniki w trzech obszarach. Wyniki zostały obliczone zgodnie z metodologią DASS-21.</p>
-
     <div class="scores-row" id="scores-row"></div>
 
     <div class="advice-box" id="advice-box"></div>
@@ -600,11 +629,52 @@
   </div>
 </section>
 
+<!-- ═══ PRODUKTY ═══ -->
+<section class="sec prod-section">
+  <div class="container">
+    <p class="sl rv">Kosma Pharma</p>
+    <h2 class="st rv d1" style="margin-bottom:3rem;">Zobacz nasze <em>produkty</em></h2>
+    <div class="prod-wrap rv d2">
+      <button class="prod-arrow prod-prev" id="prod-prev" onclick="prodPrev()" aria-label="Poprzedni">&#8592;</button>
+      <div class="prod-outer">
+        <div class="prod-track" id="prod-track">
+          <div class="prod-card">
+            <div class="prod-inner">
+              <img class="prod-img" src="10%20kps.%20Neuro_LPC-FORTE_WIZ.png" alt="Neuro LPC-FORTE">
+              <div class="prod-name">Neuro LPC-FORTE</div>
+            </div>
+          </div>
+          <div class="prod-card">
+            <div class="prod-inner">
+              <img class="prod-img" src="10%20kps.%20Neuro_LPC-JUNIOR_WIZ.png" alt="Neuro LPC-JUNIOR">
+              <div class="prod-name">Neuro LPC-JUNIOR</div>
+            </div>
+          </div>
+          <div class="prod-card">
+            <div class="prod-inner">
+              <img class="prod-img" src="10%20kps.Neuro_LPC-Adult_WIZ.png" alt="Neuro LPC-Adult">
+              <div class="prod-name">Neuro LPC-Adult</div>
+            </div>
+          </div>
+          <div class="prod-card">
+            <div class="prod-inner">
+              <img class="prod-img" src="NOWA%20WERSJA%202025%20Passilac_25_WIZ_2025.png" alt="Passilac 25">
+              <div class="prod-name">Passilac 25</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="prod-arrow prod-next" id="prod-next" onclick="prodNext()" aria-label="Następny">&#8594;</button>
+    </div>
+    <div class="prod-dots" id="prod-dots"></div>
+  </div>
+</section>
+
 <!-- ═══ FOOTER ═══ -->
 <footer>
   <div class="foot-in">
     <div style="margin-bottom:1.25rem;">
-      <img src="https://kosmapharma.com/wp-content/uploads/2025/07/KOSMA-PHARMA-HASLO-1024x268.webp" alt="Kosma Pharma" style="height:44px;width:auto;opacity:.85;filter:brightness(0) invert(1);">
+      <img src="https://kosmapharma.com/wp-content/uploads/2025/07/KOSMA-PHARMA-HASLO-1024x268.webp" alt="Kosma Pharma" style="height:44px;width:auto;">
     </div>
     <p class="foot-tag">Your psychobiotic partner</p>
     <div class="foot-disc">
@@ -884,6 +954,44 @@ function showResults() {
 /* ════════════════════════════════════
    WEBHOOK
 ════════════════════════════════════ */
+/* ════════════════════════════════════
+   PRODUKTY KARUZELA
+════════════════════════════════════ */
+(function() {
+  const TOTAL = 4;
+  let idx = 0;
+
+  function getVisible() {
+    if (window.innerWidth >= 860) return 4;
+    if (window.innerWidth >= 520) return 2;
+    return 1;
+  }
+
+  function update() {
+    const vis  = getVisible();
+    const pages = Math.ceil(TOTAL / vis);
+    idx = Math.min(idx, pages - 1);
+
+    const track = document.getElementById('prod-track');
+    track.style.transform = `translateX(-${(idx * vis / TOTAL) * 100}%)`;
+
+    document.getElementById('prod-prev').disabled = idx === 0;
+    document.getElementById('prod-next').disabled = idx >= pages - 1;
+
+    const dotsEl = document.getElementById('prod-dots');
+    dotsEl.innerHTML = Array.from({ length: pages }, (_, i) =>
+      `<button class="prod-dot${i === idx ? ' active' : ''}" onclick="prodGoTo(${i})" aria-label="Strona ${i+1}"></button>`
+    ).join('');
+  }
+
+  window.prodPrev  = function() { if (idx > 0) { idx--; update(); } };
+  window.prodNext  = function() { const vis = getVisible(); if (idx < Math.ceil(TOTAL/vis)-1) { idx++; update(); } };
+  window.prodGoTo  = function(i) { idx = i; update(); };
+
+  window.addEventListener('resize', update);
+  update();
+})();
+
 async function sendWebhook(data) {
   const el = document.getElementById('wh-row');
   el.textContent = 'Zapisywanie wyników…';
