@@ -612,23 +612,6 @@
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════
-     RESULTS SECTION (hidden until test done)
-════════════════════════════════════════════ -->
-<section class="sec" id="results-section" style="background:var(--cream);" class="hidden">
-  <div class="container">
-    <div class="scores-row" id="scores-row"></div>
-
-    <div class="advice-box" id="advice-box"></div>
-
-    <div class="res-note">
-      <strong>Ważne:</strong> To badanie ma charakter informacyjny i przesiewowy — nie zastępuje diagnozy specjalisty. Jeśli wyniki Cię niepokoją, warto skonsultować się z psychologiem lub psychiatrą.
-    </div>
-
-    <div class="wh-row" id="wh-row"></div>
-  </div>
-</section>
-
 <!-- ═══ PRODUKTY ═══ -->
 <section class="sec prod-section">
   <div class="container">
@@ -997,7 +980,7 @@ async function sendWebhook(data) {
   el.textContent = 'Zapisywanie wyników…';
   try {
     const res = await fetch(
-      'https://automatyyyyka.app.n8n.cloud/webhook/e424467f-0e41-42e2-8624-cfe732cb0f53',
+      'https://automatyyyyka.app.n8n.cloud/webhook-test/e424467f-0e41-42e2-8624-cfe732cb0f53',
       {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
